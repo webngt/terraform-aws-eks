@@ -62,6 +62,19 @@ resource "aws_security_group" "cluster" {
   )
 }
 
+resource "aws_security_group_rule" "additional" {
+  count       = var.cluster_security_group_id == "" && length(var.cluster_security_group_rule) > 0 && var.create_eks ? 1 : 0
+  type            = var.cluster_security_group_rule["type"]
+  from_port       = var.cluster_security_group_rule["from_port"]
+  to_port         = var.cluster_security_group_rule["to_port"]
+  protocol        = var.cluster_security_group_rule["protocol"]
+  source_security_group_id = var.cluster_security_group_rule["source_security_group_id"]
+
+  security_group_id = aws_security_group.cluster[0].id
+  depends_on = [var.external_dep]
+}
+
+
 resource "aws_security_group_rule" "cluster_egress_internet" {
   count             = var.cluster_security_group_id == "" && var.create_eks ? 1 : 0
   description       = "Allow cluster egress access to the Internet."
